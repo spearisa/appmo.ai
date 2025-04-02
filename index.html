@@ -52,15 +52,15 @@
                 const screenshots = await response.json();
                 const grid = document.getElementById('screenshot-grid');
                 grid.innerHTML = ''; // Clear existing content
+                const fragment = document.createDocumentFragment(); // Create a fragment
 
-                // Filter out non-png files just in case
                 // Filter out non-png files just in case
                 const imageFiles = screenshots.filter(file => file.endsWith('.png'));
 
                 // Sort images in reverse alphabetical order
                 imageFiles.sort().reverse();
 
-                // Display all images
+                // Build elements in the fragment
                 imageFiles.forEach(filename => {
                     const gridItem = document.createElement('div');
                     gridItem.className = 'grid-item';
@@ -70,6 +70,7 @@
                     img.src = `screenshots/${filename}`;
                     img.alt = filename;
                     img.loading = 'lazy'; // Lazy load images
+                    img.decoding = 'async'; // Hint for async decoding
 
                     // Create the link element
                     const link = document.createElement('a');
@@ -105,10 +106,11 @@
 
                     link.appendChild(img); // Place the image inside the link
                     gridItem.appendChild(link); // Place the link (with image) inside the grid item
-                    grid.appendChild(gridItem);
+                    fragment.appendChild(gridItem); // Add the item to the fragment
                 });
 
-                // Removed the logic for adding empty cells
+                // Append the fragment to the grid once
+                grid.appendChild(fragment);
 
             } catch (error) {
                 console.error('Failed to load screenshots:', error);
