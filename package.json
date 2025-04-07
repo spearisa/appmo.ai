@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0",
+    "mime-types": "^3.0.1",
+    "p-limit": "^6.2.0",
+    "puppeteer": "^24.6.0"
+  }
+}

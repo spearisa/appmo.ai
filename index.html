@@ -50,63 +50,86 @@
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const screenshots = await response.json();
+                // Read the JSON body ONCE
+                const screenshotsData = await response.json();
+                // screenshotsData is now an array of objects: [{filename: "...", rating: N}, ...]
+
                 const grid = document.getElementById('screenshot-grid');
                 grid.innerHTML = ''; // Clear existing content
                 const fragment = document.createDocumentFragment(); // Create a fragment
 
-                // Filter out non-png files just in case
-                const imageFiles = screenshots.filter(file => file.endsWith('.png'));
-
-                // Sort images in reverse alphabetical order
-                imageFiles.sort().reverse();
+                // No need to filter/sort here, assuming screenshots.json is already sorted and correct
+                if (!Array.isArray(screenshotsData)) {
+                     throw new Error("screenshots.json is not a valid array.");
+                }
 
                 // Build elements in the fragment
-                imageFiles.forEach(filename => {
+                screenshotsData.forEach(item => {
+                    if (!item || typeof item.filename !== 'string' || !item.filename.endsWith('.png')) {
+                        console.warn("Skipping invalid item in screenshots.json:", item);
+                        return;
+                    }
+                    // --- Filter by rating ---
+                    if (typeof item.rating !== 'number' || item.rating < 50) {
+                        // console.log(`Skipping ${item.filename} due to rating: ${item.rating}`);
+                        return; // Skip items with rating below 50 or invalid rating
+                    }
+                    // --- End filter ---
+
+                    const filename = item.filename;
+                    // const rating = item.rating; // Rating is available if needed for display
+
                     const gridItem = document.createElement('div');
-                    gridItem.className = 'grid-item';
+                    gridItem.className = 'grid-item relative'; // Added relative for potential badge positioning
 
                     const img = document.createElement('img');
-                    // Assuming images are in a 'screenshots' subdirectory relative to index.html
                     img.src = `screenshots/${filename}`;
-                    img.alt = filename;
+                    img.alt = `Screenshot of ${filename.replace(/^space-|-/g, ' ').replace('.png', '')}`; // Improved alt text
                     img.loading = 'lazy'; // Lazy load images
                     img.decoding = 'async'; // Hint for async decoding
+                    img.className = 'w-full h-auto object-cover rounded-lg shadow-md'; // Added some styling
 
                     // Create the link element
                     const link = document.createElement('a');
 
-                    // Parse filename to create the URL
+                    // Parse filename to create the URL (remove 'space-' prefix and '.png' suffix)
                     try {
-                        // Remove prefix like "7-space-" and suffix ".png"
-                        const namePart = filename.replace(/^\d+-space-/, '').replace(/\.png$/, '');
-                        // Find the first hyphen to separate username and spacename
-                        const hyphenIndex = namePart.indexOf('-');
-                        if (hyphenIndex > 0) {
-                            const username = namePart.substring(0, hyphenIndex);
-                            const spacename = namePart.substring(hyphenIndex + 1);
+                        const namePart = filename.replace(/^space-/, '').replace(/\.png$/, '');
+                        // Replace the *first* hyphen only to separate owner/repo
+                        const parts = namePart.split(/-(.+)/); // Split on the first hyphen
+                        if (parts.length >= 2 && parts[0] && parts[1]) {
+                            const username = parts[0];
+                            const spacename = parts[1];
                             link.href = `https://huggingface.co/spaces/${username}/${spacename}`;
                             link.target = '_blank'; // Open in new tab
                             link.rel = 'noopener noreferrer'; // Security best practice
                         } else {
                             // Handle cases where the format might be unexpected
                             console.warn(`Could not parse username/spacename from: ${filename}`);
-                            // Make it non-clickable or link somewhere default? For now, just append image directly.
+                            // Make it non-clickable by just appending the image
                             gridItem.appendChild(img);
-                            grid.appendChild(gridItem);
+                            fragment.appendChild(gridItem); // Add directly to fragment
                             return; // Skip appending link for this item
                         }
                     } catch (e) {
                          console.error(`Error parsing filename: ${filename}`, e);
                          // Append image directly if parsing fails
                          gridItem.appendChild(img);
-                         grid.appendChild(gridItem);
+                         fragment.appendChild(gridItem); // Add directly to fragment
                          return; // Skip appending link for this item
                     }
 
-
                     link.appendChild(img); // Place the image inside the link
                     gridItem.appendChild(link); // Place the link (with image) inside the grid item
+
+                    // Optional: Display rating badge (Example)
+                    // if (typeof rating === 'number') {
+                    //     const badge = document.createElement('span');
+                    //     badge.className = 'absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full';
+                    //     badge.textContent = rating;
+                    //     gridItem.appendChild(badge);
+                    // }
+
                     fragment.appendChild(gridItem); // Add the item to the fragment
                 });
 
