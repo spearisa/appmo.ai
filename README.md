@@ -1,5 +1,5 @@
 ---
-title: Deepsite Gallery
+title: DeepSite Gallery
 emoji: 🐋
 colorFrom: blue
 colorTo: indigo
