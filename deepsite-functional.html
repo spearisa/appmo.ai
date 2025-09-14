@@ -227,14 +227,14 @@
             
             <div class="space-y-4">
                 <div>
-                    <label class="text-sm text-neutral-400">OpenAI API Key</label>
+                    <label class="text-sm text-neutral-400">OpenAI API Key (Optional)</label>
                     <input 
                         type="password" 
                         id="settingsApiKey"
                         placeholder="sk-..."
                         class="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white text-sm"
                     >
-                    <p class="text-xs text-neutral-500 mt-1">Your API key is stored locally and never sent to our servers.</p>
+                    <p class="text-xs text-neutral-500 mt-1">Optional: Your API key is stored locally. Without a key, mock AI responses will be used.</p>
                 </div>
                 
                 <div>
@@ -319,10 +319,7 @@
             }
 
             const apiKey = document.getElementById('apiKey').value || localStorage.getItem('openai_api_key');
-            if (!apiKey) {
-                alert('Please enter your OpenAI API key in settings!');
-                return;
-            }
+            // Note: API key is optional - mock responses will be used if no key provided
 
             isGenerating = true;
             updateGenerateButton(true);
