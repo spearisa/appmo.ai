@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Appmo Debug Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4">Appmo Debug Test</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <textarea id="testPrompt" placeholder="Enter a prompt..." class="w-full p-3 border rounded mb-4" rows="3"></textarea>
+            <button onclick="testGeneration()" class="bg-blue-500 text-white px-4 py-2 rounded">Test Generation</button>
+        </div>
+        
+        <div id="result" class="mt-4 p-4 bg-gray-50 rounded hidden">
+            <h3 class="font-bold mb-2">Result:</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testGeneration() {
+            const prompt = document.getElementById('testPrompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a prompt!');
+                return;
+            }
+
+            console.log('Testing generation with prompt:', prompt);
+            
+            try {
+                const response = await fetch('/api/ask-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        model: 'gpt-4o-mini',
+                        apiKey: ''
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.text();
+                console.log('Response received:', result.substring(0, 100) + '...');
+                
+                document.getElementById('result').classList.remove('hidden');
+                document.getElementById('resultContent').innerHTML = `<pre class="text-xs overflow-auto">${result.substring(0, 500)}...</pre>`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

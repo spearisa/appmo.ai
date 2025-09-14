@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appmo Simple - AI Website Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="min-h-screen p-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold mb-2 gradient-text">🚀 Appmo AI</h1>
+                <p class="text-gray-400">Generate websites with AI - No API key required!</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Input Panel -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Create Your Website</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Describe your website:</label>
+                            <textarea 
+                                id="prompt" 
+                                placeholder="e.g., Create a landing page for a tech startup..."
+                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 resize-none" 
+                                rows="4"
+                            ></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">AI Model (Optional):</label>
+                            <select id="model" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
+                                <option value="gpt-4o-mini">GPT-4o Mini (Recommended)</option>
+                                <option value="gpt-4o">GPT-4o</option>
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            </select>
+                        </div>
+
+                        <button 
+                            onclick="generateWebsite()" 
+                            id="generateBtn"
+                            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium transition-colors"
+                        >
+                            <span id="generateText">🚀 Generate Website</span>
+                        </button>
+                    </div>
+
+                    <!-- Status -->
+                    <div id="status" class="mt-4 hidden">
+                        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
+                            <span id="statusText">Generating...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Panel -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Live Preview</h2>
+                    <div class="border border-gray-600 rounded-lg overflow-hidden">
+                        <iframe 
+                            id="preview" 
+                            class="w-full h-96 bg-white"
+                            src="data:text/html,<html><body style='display:flex;align-items:center;justify-content:center;font-family:Arial;'><p style='color:#666;'>Generated website will appear here...</p></body></html>"
+                        ></iframe>
+                    </div>
+                    
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="copyCode()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-sm">
+                            📋 Copy Code
+                        </button>
+                        <button onclick="downloadCode()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded text-sm">
+                            💾 Download HTML
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generated Code -->
+            <div class="mt-6 bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Generated Code</h2>
+                <textarea 
+                    id="codeOutput" 
+                    class="w-full h-64 bg-gray-900 text-green-400 p-4 font-mono text-sm rounded border border-gray-600 resize-none"
+                    placeholder="Generated HTML code will appear here..."
+                ></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isGenerating = false;
+
+        async function generateWebsite() {
+            const prompt = document.getElementById('prompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a description for your website!');
+                return;
+            }
+
+            if (isGenerating) return;
+
+            isGenerating = true;
+            updateButton(true);
+            showStatus('Generating your website...', 'blue');
+
+            try {
+                console.log('Sending request:', { prompt, model: document.getElementById('model').value });
+                
+                const response = await fetch('/api/ask-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        model: document.getElementById('model').value,
+                        apiKey: ''
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const generatedHtml = await response.text();
+                console.log('Generated HTML length:', generatedHtml.length);
+
+                // Update preview
+                const blob = new Blob([generatedHtml], { type: 'text/html' });
+                document.getElementById('preview').src = URL.createObjectURL(blob);
+
+                // Update code output
+                document.getElementById('codeOutput').value = generatedHtml;
+
+                showStatus('✅ Website generated successfully!', 'green');
+                
+            } catch (error) {
+                console.error('Generation error:', error);
+                showStatus('❌ Error: ' + error.message, 'red');
+            } finally {
+                isGenerating = false;
+                updateButton(false);
+            }
+        }
+
+        function updateButton(generating) {
+            const btn = document.getElementById('generateBtn');
+            const text = document.getElementById('generateText');
+            
+            if (generating) {
+                btn.disabled = true;
+                text.textContent = '⏳ Generating...';
+                btn.classList.add('opacity-75');
+            } else {
+                btn.disabled = false;
+                text.textContent = '🚀 Generate Website';
+                btn.classList.remove('opacity-75');
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            
+            statusText.textContent = message;
+            status.classList.remove('hidden');
+            
+            // Update colors based on type
+            const statusDiv = status.querySelector('div');
+            statusDiv.className = `px-4 py-3 rounded border`;
+            
+            if (type === 'green') {
+                statusDiv.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+            } else if (type === 'red') {
+                statusDiv.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+            } else {
+                statusDiv.classList.add('bg-blue-100', 'border-blue-400', 'text-blue-700');
+            }
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').value;
+            if (!code) {
+                alert('No code to copy! Generate a website first.');
+                return;
+            }
+            
+            navigator.clipboard.writeText(code).then(() => {
+                showStatus('📋 Code copied to clipboard!', 'green');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy code to clipboard.');
+            });
+        }
+
+        function downloadCode() {
+            const code = document.getElementById('codeOutput').value;
+            if (!code) {
+                alert('No code to download! Generate a website first.');
+                return;
+            }
+            
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'appmo-website.html';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showStatus('💾 HTML file downloaded!', 'green');
+        }
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                generateWebsite();
+            }
+        });
+    </script>
+</body>
+</html>
