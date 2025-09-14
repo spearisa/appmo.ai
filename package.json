@@ -1,8 +1,29 @@
 {
+  "name": "appmo-gallery",
+  "version": "1.0.0",
+  "description": "DeepSite Gallery with automated screenshot generation",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "generate-placeholders": "node generate-placeholders.js",
+    "appmo-demo": "node appmo-client.js",
+    "install-deps": "npm install"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
+    "canvas": "^2.11.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "mime-types": "^3.0.1",
     "p-limit": "^6.2.0",
     "puppeteer": "^24.6.0"
-  }
+  },
+  "keywords": [
+    "appmo",
+    "gallery",
+    "ai",
+    "websites"
+  ],
+  "author": "",
+  "license": "MIT"
 }

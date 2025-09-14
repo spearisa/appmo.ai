@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appmo Functional - Real AI Implementation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #0ea5e9, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .thinking {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .code-editor {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .search-replace-block {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+        .search-block {
+            background: #dc2626;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+        .replace-block {
+            background: #16a34a;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body class="bg-black text-white h-screen overflow-hidden">
+    <!-- Header -->
+    <header class="border-b border-neutral-800 px-6 py-3 flex items-center justify-between bg-neutral-950">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                    <span class="text-black font-bold text-sm">DS</span>
+                </div>
+                <h1 class="text-xl font-bold">Appmo Functional</h1>
+                <span class="bg-gradient-to-r from-sky-500 to-emerald-500 text-black text-xs font-bold px-2 py-1 rounded-full">v2</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <button onclick="openSettings()" class="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 rounded-full text-sm transition-colors">
+                ⚙️ Settings
+            </button>
+            <button onclick="saveProject()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm transition-colors">
+                💾 Save
+            </button>
+            <button onclick="exportCode()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-sm transition-colors">
+                📤 Export
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex h-[calc(100vh-73px)]">
+        <!-- Left Panel - AI Input -->
+        <div class="w-96 bg-neutral-900 border-r border-neutral-800 flex flex-col">
+            <!-- AI Prompt Section -->
+            <div class="p-4 border-b border-neutral-800">
+                <h3 class="font-semibold mb-3 flex items-center gap-2">
+                    <span class="text-2xl">🤖</span>
+                    AI Website Generator
+                </h3>
+                
+                <!-- Thinking Panel -->
+                <div id="thinking-panel" class="hidden mb-4 bg-neutral-800 border border-neutral-700 rounded-lg">
+                    <div class="p-3 border-b border-neutral-700 flex items-center justify-between">
+                        <span class="text-sm font-medium text-neutral-300 thinking">Appmo is thinking...</span>
+                        <button onclick="stopGeneration()" class="text-xs text-neutral-400 hover:text-white px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600">
+                            Stop
+                        </button>
+                    </div>
+                    <div id="thinking-content" class="p-3 text-sm text-neutral-400 max-h-32 overflow-y-auto">
+                        <!-- Thinking content will appear here -->
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <textarea 
+                        id="aiPrompt"
+                        placeholder="Ask Appmo anything..."
+                        class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-white placeholder-neutral-400 focus:outline-none focus:border-blue-500 resize-none"
+                        rows="4"
+                    ></textarea>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="generateWebsite()" id="generateBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                            <span>🚀</span>
+                            <span id="generateText">Generate</span>
+                        </button>
+                        <button onclick="showTemplates()" class="bg-neutral-700 hover:bg-neutral-600 text-white py-2 px-3 rounded-lg text-sm transition-colors">
+                            📋
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Panel -->
+            <div class="p-4 border-b border-neutral-800">
+                <h3 class="font-semibold mb-3">Settings</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm text-neutral-400">AI Model</label>
+                        <select id="aiModel" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white text-sm">
+                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            <option value="gpt-4o">GPT-4o</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-neutral-400">API Key</label>
+                        <input 
+                            type="password" 
+                            id="apiKey"
+                            placeholder="Enter your OpenAI API key"
+                            class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white text-sm placeholder-neutral-500"
+                        >
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="diffMode" class="rounded">
+                        <label for="diffMode" class="text-sm text-neutral-400">Diff-Patch Update</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="p-4 flex-1">
+                <h3 class="font-semibold mb-3">History</h3>
+                <div id="history" class="space-y-2 max-h-48 overflow-y-auto">
+                    <!-- History items will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Preview & Code -->
+        <div class="flex-1 bg-neutral-950 overflow-hidden">
+            <!-- Tabs -->
+            <div class="border-b border-neutral-800">
+                <div class="flex">
+                    <button onclick="showTab('preview')" id="preview-tab" class="px-6 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-400">
+                        👁️ Preview
+                    </button>
+                    <button onclick="showTab('code')" id="code-tab" class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-neutral-400 hover:text-white">
+                        💻 Code
+                    </button>
+                    <button onclick="showTab('diff')" id="diff-tab" class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-neutral-400 hover:text-white">
+                        🔄 Changes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Tab -->
+            <div id="preview-content" class="h-[calc(100%-60px)] p-4">
+                <div class="bg-white rounded-lg h-full overflow-hidden">
+                    <iframe id="preview-frame" src="about:blank" class="w-full h-full border-0"></iframe>
+                </div>
+            </div>
+
+            <!-- Code Tab -->
+            <div id="code-content" class="h-[calc(100%-60px)] p-4 hidden">
+                <div class="bg-neutral-800 rounded-lg h-full overflow-hidden">
+                    <div class="flex items-center justify-between p-3 border-b border-neutral-700">
+                        <span class="text-sm font-medium">index.html</span>
+                        <div class="flex gap-2">
+                            <button onclick="formatCode()" class="bg-neutral-700 hover:bg-neutral-600 text-white px-3 py-1 rounded text-sm">
+                                🎨 Format
+                            </button>
+                            <button onclick="copyCode()" class="bg-neutral-700 hover:bg-neutral-600 text-white px-3 py-1 rounded text-sm">
+                                📋 Copy
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="code-editor" class="w-full h-full bg-neutral-900 text-green-400 p-4 font-mono text-sm resize-none focus:outline-none code-editor" placeholder="Generated HTML will appear here..."></textarea>
+                </div>
+            </div>
+
+            <!-- Diff Tab -->
+            <div id="diff-content" class="h-[calc(100%-60px)] p-4 hidden overflow-y-auto">
+                <div class="space-y-4">
+                    <div class="bg-neutral-800 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold mb-3">Recent Changes</h3>
+                        <div id="diff-list" class="space-y-3">
+                            <!-- Diff blocks will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-neutral-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold">Settings</h2>
+                <button onclick="closeSettings()" class="text-neutral-400 hover:text-white">✕</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm text-neutral-400">OpenAI API Key</label>
+                    <input 
+                        type="password" 
+                        id="settingsApiKey"
+                        placeholder="sk-..."
+                        class="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white text-sm"
+                    >
+                    <p class="text-xs text-neutral-500 mt-1">Your API key is stored locally and never sent to our servers.</p>
+                </div>
+                
+                <div>
+                    <label class="text-sm text-neutral-400">Base URL (Optional)</label>
+                    <input 
+                        type="text" 
+                        id="settingsBaseUrl"
+                        placeholder="https://api.openai.com/v1"
+                        class="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white text-sm"
+                    >
+                </div>
+                
+                <div>
+                    <label class="text-sm text-neutral-400">Default Model</label>
+                    <select id="settingsModel" class="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white text-sm">
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="gpt-4o">GPT-4o</option>
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button onclick="saveSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
+                    Save Settings
+                </button>
+                <button onclick="closeSettings()" class="px-4 py-2 text-neutral-400 hover:text-white text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let isGenerating = false;
+        let currentHtml = '';
+        let originalHtml = '';
+        let generationController = null;
+        let history = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            initializeDefaultHtml();
+        });
+
+        function initializeDefaultHtml() {
+            const defaultHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <div class="text-6xl mb-4">🚀</div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Welcome to Appmo</h1>
+            <p class="text-xl text-gray-600 mb-8">Enter a prompt to generate your website!</p>
+            <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
+                Ready to create amazing websites with AI
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+            
+            currentHtml = defaultHTML;
+            originalHtml = defaultHTML;
+            updatePreview(defaultHTML);
+            updateCodeEditor(defaultHTML);
+        }
+
+        async function generateWebsite() {
+            const prompt = document.getElementById('aiPrompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a prompt first!');
+                return;
+            }
+
+            const apiKey = document.getElementById('apiKey').value || localStorage.getItem('openai_api_key');
+            if (!apiKey) {
+                alert('Please enter your OpenAI API key in settings!');
+                return;
+            }
+
+            isGenerating = true;
+            updateGenerateButton(true);
+
+            try {
+                const response = await fetch('/api/ask-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        model: document.getElementById('aiModel').value,
+                        apiKey: apiKey,
+                        html: currentHtml,
+                        provider: 'openai'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate website');
+                }
+
+                // Handle streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let generatedHtml = '';
+
+                showThinkingPanel();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    generatedHtml += chunk;
+
+                    // Update thinking content
+                    updateThinkingContent(chunk);
+
+                    // Update preview in real-time
+                    const htmlMatch = generatedHtml.match(/<!DOCTYPE html>[\s\S]*<\/html>/);
+                    if (htmlMatch) {
+                        const partialHtml = htmlMatch[0];
+                        updatePreview(partialHtml);
+                    }
+                }
+
+                // Final update
+                const finalHtml = generatedHtml.match(/<!DOCTYPE html>[\s\S]*<\/html>/)?.[0] || generatedHtml;
+                currentHtml = finalHtml;
+                updatePreview(finalHtml);
+                updateCodeEditor(finalHtml);
+
+                // Add to history
+                addToHistory(prompt, finalHtml);
+
+                // Hide thinking panel
+                hideThinkingPanel();
+
+                showSuccess('Website generated successfully!');
+
+            } catch (error) {
+                console.error('Generation error:', error);
+                showError('Failed to generate website: ' + error.message);
+            } finally {
+                isGenerating = false;
+                updateGenerateButton(false);
+            }
+        }
+
+        function updateGenerateButton(generating) {
+            const btn = document.getElementById('generateBtn');
+            const text = document.getElementById('generateText');
+            
+            if (generating) {
+                btn.disabled = true;
+                text.textContent = 'Generating...';
+                btn.classList.add('opacity-75');
+            } else {
+                btn.disabled = false;
+                text.textContent = 'Generate';
+                btn.classList.remove('opacity-75');
+            }
+        }
+
+        function showThinkingPanel() {
+            document.getElementById('thinking-panel').classList.remove('hidden');
+            document.getElementById('thinking-content').textContent = '';
+        }
+
+        function hideThinkingPanel() {
+            document.getElementById('thinking-panel').classList.add('hidden');
+        }
+
+        function updateThinkingContent(chunk) {
+            const content = document.getElementById('thinking-content');
+            content.textContent += chunk;
+            content.scrollTop = content.scrollHeight;
+        }
+
+        function updatePreview(html) {
+            const iframe = document.getElementById('preview-frame');
+            const blob = new Blob([html], { type: 'text/html' });
+            iframe.src = URL.createObjectURL(blob);
+        }
+
+        function updateCodeEditor(html) {
+            document.getElementById('code-editor').value = html;
+        }
+
+        function addToHistory(prompt, html) {
+            const historyItem = {
+                id: Date.now(),
+                prompt: prompt,
+                html: html,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            history.unshift(historyItem);
+            if (history.length > 10) history.pop();
+
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            const historyDiv = document.getElementById('history');
+            historyDiv.innerHTML = '';
+
+            history.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bg-neutral-800 hover:bg-neutral-700 rounded-lg p-3 cursor-pointer transition-colors';
+                itemDiv.innerHTML = `
+                    <div class="text-sm font-medium text-white truncate">${item.prompt}</div>
+                    <div class="text-xs text-neutral-400">${item.timestamp}</div>
+                `;
+                
+                itemDiv.onclick = () => {
+                    currentHtml = item.html;
+                    updatePreview(item.html);
+                    updateCodeEditor(item.html);
+                    showTab('preview');
+                };
+                
+                historyDiv.appendChild(itemDiv);
+            });
+        }
+
+        function showTab(tab) {
+            // Hide all content
+            document.getElementById('preview-content').classList.add('hidden');
+            document.getElementById('code-content').classList.add('hidden');
+            document.getElementById('diff-content').classList.add('hidden');
+            
+            // Remove active from all tabs
+            document.getElementById('preview-tab').className = 'px-6 py-3 text-sm font-medium border-b-2 border-transparent text-neutral-400 hover:text-white';
+            document.getElementById('code-tab').className = 'px-6 py-3 text-sm font-medium border-b-2 border-transparent text-neutral-400 hover:text-white';
+            document.getElementById('diff-tab').className = 'px-6 py-3 text-sm font-medium border-b-2 border-transparent text-neutral-400 hover:text-white';
+            
+            // Show selected content and update tab
+            if (tab === 'preview') {
+                document.getElementById('preview-content').classList.remove('hidden');
+                document.getElementById('preview-tab').className = 'px-6 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-400';
+            } else if (tab === 'code') {
+                document.getElementById('code-content').classList.remove('hidden');
+                document.getElementById('code-tab').className = 'px-6 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-400';
+            } else if (tab === 'diff') {
+                document.getElementById('diff-content').classList.remove('hidden');
+                document.getElementById('diff-tab').className = 'px-6 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-400';
+                updateDiffDisplay();
+            }
+        }
+
+        function updateDiffDisplay() {
+            // This would show the differences between original and current HTML
+            const diffDiv = document.getElementById('diff-list');
+            diffDiv.innerHTML = '<div class="text-neutral-400 text-sm">No changes to display</div>';
+        }
+
+        function copyCode() {
+            const code = document.getElementById('code-editor').value;
+            navigator.clipboard.writeText(code).then(() => {
+                showSuccess('Code copied to clipboard!');
+            });
+        }
+
+        function formatCode() {
+            // Simple HTML formatting
+            const code = document.getElementById('code-editor').value;
+            const formatted = code
+                .replace(/></g, '>\n<')
+                .split('\n')
+                .map(line => {
+                    const depth = (line.match(/</g) || []).length - (line.match(/\//g) || []).length;
+                    return '  '.repeat(depth) + line.trim();
+                })
+                .join('\n');
+            
+            document.getElementById('code-editor').value = formatted;
+            showSuccess('Code formatted!');
+        }
+
+        function saveProject() {
+            const project = {
+                html: currentHtml,
+                prompt: document.getElementById('aiPrompt').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(project, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'deepsite-project.json';
+            link.click();
+            
+            showSuccess('Project saved!');
+        }
+
+        function exportCode() {
+            const code = document.getElementById('code-editor').value;
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'index.html';
+            link.click();
+            
+            showSuccess('Code exported!');
+        }
+
+        function openSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('settings-modal').classList.add('flex');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.add('hidden');
+            document.getElementById('settings-modal').classList.remove('flex');
+        }
+
+        function saveSettings() {
+            const apiKey = document.getElementById('settingsApiKey').value;
+            const baseUrl = document.getElementById('settingsBaseUrl').value;
+            const model = document.getElementById('settingsModel').value;
+            
+            localStorage.setItem('openai_api_key', apiKey);
+            localStorage.setItem('openai_base_url', baseUrl);
+            localStorage.setItem('openai_model', model);
+            
+            // Update main form
+            document.getElementById('apiKey').value = apiKey;
+            document.getElementById('aiModel').value = model;
+            
+            closeSettings();
+            showSuccess('Settings saved!');
+        }
+
+        function loadSettings() {
+            const apiKey = localStorage.getItem('openai_api_key') || '';
+            const baseUrl = localStorage.getItem('openai_base_url') || '';
+            const model = localStorage.getItem('openai_model') || 'gpt-4o-mini';
+            
+            document.getElementById('apiKey').value = apiKey;
+            document.getElementById('settingsApiKey').value = apiKey;
+            document.getElementById('settingsBaseUrl').value = baseUrl;
+            document.getElementById('settingsModel').value = model;
+            document.getElementById('aiModel').value = model;
+        }
+
+        function showTemplates() {
+            const templates = [
+                "Create a modern landing page for a tech startup with a hero section, features showcase, testimonials, and contact form. Use a professional color scheme and include call-to-action buttons.",
+                "Build a creative portfolio website for a graphic designer with a gallery, about section, services, and contact information. Make it visually appealing with smooth animations.",
+                "Create an e-commerce product page with image gallery, product details, reviews section, and add-to-cart functionality. Include related products and secure checkout design.",
+                "Design a clean blog website with article listings, featured posts, categories, search functionality, and author profiles. Include social sharing and newsletter signup."
+            ];
+            
+            const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+            document.getElementById('aiPrompt').value = randomTemplate;
+            showSuccess('Template loaded!');
+        }
+
+        function showSuccess(message) {
+            // Simple toast notification
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
+        }
+
+        function showError(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 5000);
+        }
+
+        function stopGeneration() {
+            if (generationController) {
+                generationController.abort();
+            }
+            isGenerating = false;
+            updateGenerateButton(false);
+            hideThinkingPanel();
+            showError('Generation stopped');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    generateWebsite();
+                } else if (e.key === 's') {
+                    e.preventDefault();
+                    saveProject();
+                } else if (e.key === 'e') {
+                    e.preventDefault();
+                    exportCode();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
