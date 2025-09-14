@@ -1,0 +1,23 @@
+Sample Prompts for DeepSite
+========================================
+
+1. Create a modern landing page for a tech startup with a hero section, features, and contact form
+
+2. Build a portfolio website for a graphic designer with a gallery and about section
+
+3. Make a restaurant website with menu, location, and reservation form
+
+4. Create a blog website with a clean design and article layout
+
+5. Build an e-commerce product page with image gallery and purchase button
+
+6. Make a fitness app landing page with workout plans and testimonials
+
+7. Create a real estate website with property listings and contact form
+
+8. Build a photography portfolio with image grid and client testimonials
+
+9. Make a SaaS dashboard interface with charts and user management
+
+10. Create a travel blog with destination guides and booking integration
+
