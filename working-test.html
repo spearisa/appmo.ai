@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Appmo Working Test</title>
+    <meta charset="UTF-8">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white; 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        .container { 
+            background: #2a2a2a; 
+            padding: 30px; 
+            border-radius: 10px; 
+            border: 1px solid #333; 
+        }
+        h1 { color: #4CAF50; text-align: center; }
+        button { 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            padding: 15px 30px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        textarea { 
+            width: 100%; 
+            height: 120px; 
+            margin: 15px 0; 
+            padding: 15px; 
+            background: #333; 
+            color: white; 
+            border: 1px solid #555; 
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .result { 
+            margin-top: 20px; 
+            padding: 20px; 
+            background: #333; 
+            border-radius: 5px; 
+            border: 1px solid #555;
+            display: none;
+        }
+        .success { border-color: #4CAF50; }
+        .error { border-color: #f44336; }
+        .preview { 
+            width: 100%; 
+            height: 300px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            background: white;
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+            display: none;
+        }
+        .status.info { background: #2196F3; color: white; }
+        .status.success { background: #4CAF50; color: white; }
+        .status.error { background: #f44336; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Appmo AI Website Generator</h1>
+        <p style="text-align: center; color: #ccc;">Generate websites with AI - No API key required!</p>
+        
+        <div id="status" class="status"></div>
+        
+        <textarea id="prompt" placeholder="Describe your website...&#10;&#10;Examples:&#10;• Create a landing page for a tech startup&#10;• Build a portfolio website for a designer&#10;• Make a restaurant website with menu&#10;• Design a fitness app landing page"></textarea>
+        
+        <button onclick="generateWebsite()" id="generateBtn">
+            <span id="btnText">🚀 Generate Website</span>
+        </button>
+        
+        <div id="result" class="result">
+            <h3>Generated Website:</h3>
+            <iframe id="preview" class="preview" src="data:text/html,<html><body style='display:flex;align-items:center;justify-content:center;font-family:Arial;color:#666;'><p>Your generated website will appear here...</p></body></html>"></iframe>
+            
+            <div style="margin-top: 15px;">
+                <button onclick="copyCode()" style="background: #2196F3; width: auto; margin-right: 10px;">📋 Copy Code</button>
+                <button onclick="downloadCode()" style="background: #FF9800; width: auto;">💾 Download HTML</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let isGenerating = false;
+        let generatedHTML = '';
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Update button state
+        function updateButton(generating) {
+            const btn = document.getElementById('generateBtn');
+            const text = document.getElementById('btnText');
+            
+            if (generating) {
+                btn.disabled = true;
+                text.textContent = '⏳ Generating...';
+            } else {
+                btn.disabled = false;
+                text.textContent = '🚀 Generate Website';
+            }
+        }
+
+        // Main generation function
+        async function generateWebsite() {
+            console.log('Generate button clicked!');
+            
+            const prompt = document.getElementById('prompt').value.trim();
+            if (!prompt) {
+                showStatus('Please enter a description for your website!', 'error');
+                return;
+            }
+
+            if (isGenerating) {
+                console.log('Already generating, ignoring click');
+                return;
+            }
+
+            isGenerating = true;
+            updateButton(true);
+            showStatus('Generating your website...', 'info');
+            
+            console.log('Starting generation with prompt:', prompt);
+
+            try {
+                const response = await fetch('/api/ask-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        model: 'gpt-4o-mini',
+                        apiKey: ''
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+
+                generatedHTML = await response.text();
+                console.log('Generated HTML length:', generatedHTML.length);
+
+                // Update preview
+                const blob = new Blob([generatedHTML], { type: 'text/html' });
+                document.getElementById('preview').src = URL.createObjectURL(blob);
+
+                // Show result
+                document.getElementById('result').style.display = 'block';
+                showStatus('✅ Website generated successfully!', 'success');
+
+            } catch (error) {
+                console.error('Generation error:', error);
+                showStatus('❌ Error: ' + error.message, 'error');
+            } finally {
+                isGenerating = false;
+                updateButton(false);
+            }
+        }
+
+        // Copy code to clipboard
+        function copyCode() {
+            if (!generatedHTML) {
+                showStatus('No code to copy! Generate a website first.', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(generatedHTML).then(() => {
+                showStatus('📋 Code copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showStatus('Failed to copy code to clipboard.', 'error');
+            });
+        }
+
+        // Download code as HTML file
+        function downloadCode() {
+            if (!generatedHTML) {
+                showStatus('No code to download! Generate a website first.', 'error');
+                return;
+            }
+            
+            const blob = new Blob([generatedHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'appmo-website.html';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showStatus('💾 HTML file downloaded!', 'success');
+        }
+
+        // Test JavaScript is working
+        console.log('JavaScript loaded successfully!');
+        showStatus('Ready to generate websites! Enter a prompt and click Generate.', 'info');
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                generateWebsite();
+            }
+        });
+    </script>
+</body>
+</html>

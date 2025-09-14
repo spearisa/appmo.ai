@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal Appmo Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; padding: 10px; }
+        #result { margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Appmo Minimal Test</h1>
+        <p>This is a simple test to check if the API is working.</p>
+        
+        <textarea id="prompt" placeholder="Enter a prompt like: Create a simple landing page"></textarea>
+        
+        <button onclick="testAPI()">Test Generate</button>
+        
+        <div id="result" style="display: none;">
+            <h3>Result:</h3>
+            <div id="resultContent"></div>
+        </div>
+        
+        <div id="error" style="display: none; color: red;">
+            <h3>Error:</h3>
+            <div id="errorContent"></div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Script loaded successfully');
+        
+        function testAPI() {
+            console.log('Button clicked!');
+            
+            const prompt = document.getElementById('prompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a prompt!');
+                return;
+            }
+            
+            console.log('Testing with prompt:', prompt);
+            
+            // Show loading
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('resultContent').innerHTML = '⏳ Testing API connection...';
+            
+            // Test the API
+            fetch('/api/ask-ai', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    model: 'gpt-4o-mini',
+                    apiKey: ''
+                })
+            })
+            .then(response => {
+                console.log('Response received:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(data => {
+                console.log('Data received, length:', data.length);
+                document.getElementById('resultContent').innerHTML = 
+                    '<p>✅ <strong>Success!</strong> API is working.</p>' +
+                    '<p>Generated HTML length: ' + data.length + ' characters</p>' +
+                    '<details><summary>View HTML (first 500 chars)</summary><pre>' + 
+                    data.substring(0, 500) + '...</pre></details>';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('result').style.display = 'none';
+                document.getElementById('errorContent').innerHTML = error.message;
+            });
+        }
+        
+        // Test if JavaScript is working
+        console.log('JavaScript is working!');
+        alert('JavaScript is working! Click OK to continue.');
+    </script>
+</body>
+</html>
