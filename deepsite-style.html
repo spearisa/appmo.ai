@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSite Gallery - DeepSite Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #0ea5e9, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-black text-white h-screen overflow-hidden">
+    <!-- Header -->
+    <header class="border-b border-neutral-800 px-6 py-3 flex items-center justify-between bg-neutral-950">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                    <span class="text-black font-bold text-sm">DS</span>
+                </div>
+                <h1 class="text-xl font-bold">DeepSite Gallery</h1>
+                <span class="bg-gradient-to-r from-sky-500 to-emerald-500 text-black text-xs font-bold px-2 py-1 rounded-full">v2</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <button class="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 rounded-full text-sm transition-colors">
+                📊 Gallery Stats
+            </button>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm transition-colors">
+                🚀 Open DeepSite
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex h-[calc(100vh-73px)]">
+        <!-- Left Panel - Gallery Controls -->
+        <div class="w-80 bg-neutral-900 border-r border-neutral-800 flex flex-col">
+            <!-- Search/Filter Section -->
+            <div class="p-4 border-b border-neutral-800">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        placeholder="Search projects..." 
+                        class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-white placeholder-neutral-400 focus:outline-none focus:border-blue-500"
+                    >
+                    <div class="absolute right-3 top-2.5 text-neutral-400">
+                        🔍
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex gap-2">
+                    <button class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs">All (1,653)</button>
+                    <button class="bg-neutral-700 hover:bg-neutral-600 text-white px-3 py-1 rounded-full text-xs">High Rating</button>
+                    <button class="bg-neutral-700 hover:bg-neutral-600 text-white px-3 py-1 rounded-full text-xs">Recent</button>
+                </div>
+            </div>
+
+            <!-- Project Info -->
+            <div class="p-4 border-b border-neutral-800">
+                <h3 class="font-semibold mb-3">Project Details</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-neutral-400">Total Projects:</span>
+                        <span class="text-white">1,653</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-neutral-400">High Quality:</span>
+                        <span class="text-green-400">892</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-neutral-400">Screenshots:</span>
+                        <span class="text-blue-400">1,653</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="p-4">
+                <h3 class="font-semibold mb-3">Quick Actions</h3>
+                <div class="space-y-2">
+                    <button class="w-full bg-neutral-800 hover:bg-neutral-700 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center gap-2">
+                        🎨 Create New Project
+                    </button>
+                    <button class="w-full bg-neutral-800 hover:bg-neutral-700 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center gap-2">
+                        📸 Generate Screenshots
+                    </button>
+                    <button class="w-full bg-neutral-800 hover:bg-neutral-700 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center gap-2">
+                        ⚙️ Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Gallery Grid -->
+        <div class="flex-1 bg-neutral-950 overflow-hidden">
+            <!-- Gallery Header -->
+            <div class="p-4 border-b border-neutral-800 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold">DeepSite Projects</h2>
+                    <p class="text-sm text-neutral-400">Browse amazing websites created with AI</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs">
+                        ✨ AI Generated
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div class="p-4 h-[calc(100%-100px)] overflow-y-auto">
+                <div id="gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fixed bottom-6 right-6">
+        <button class="bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 text-white p-4 rounded-full shadow-lg transition-all transform hover:scale-105">
+            <span class="text-xl">🚀</span>
+        </button>
+    </div>
+
+    <script>
+        // Load gallery data and display projects
+        async function loadGallery() {
+            try {
+                const response = await fetch('screenshots.json');
+                const data = await response.json();
+                
+                const grid = document.getElementById('gallery-grid');
+                grid.innerHTML = '';
+                
+                // Show first 20 projects for demo
+                const projectsToShow = data.slice(0, 20);
+                
+                projectsToShow.forEach(item => {
+                    if (item.filename && item.filename.endsWith('.png')) {
+                        const projectName = item.filename
+                            .replace('space-', '')
+                            .replace('.png', '')
+                            .replace(/-/g, ' ')
+                            .replace(/\b\w/g, l => l.toUpperCase());
+                        
+                        const gridItem = document.createElement('div');
+                        gridItem.className = 'group cursor-pointer';
+                        
+                        gridItem.innerHTML = `
+                            <div class="relative bg-neutral-800 rounded-lg overflow-hidden hover:bg-neutral-700 transition-colors">
+                                <img 
+                                    src="screenshots/${item.filename}" 
+                                    alt="${projectName}"
+                                    class="w-full h-32 object-cover"
+                                    loading="lazy"
+                                >
+                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span class="text-white text-sm font-medium">View Project</span>
+                                </div>
+                                <div class="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                                    ${item.rating || 85}
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <h3 class="text-sm font-medium text-white truncate">${projectName}</h3>
+                                <p class="text-xs text-neutral-400">Rating: ${item.rating || 85}/100</p>
+                            </div>
+                        `;
+                        
+                        // Add click handler
+                        gridItem.addEventListener('click', () => {
+                            const username = item.filename.split('-')[1];
+                            const project = item.filename.replace('space-', '').replace('.png', '').split('-').slice(1).join('-');
+                            window.open(`https://huggingface.co/spaces/${username}/${project}`, '_blank');
+                        });
+                        
+                        grid.appendChild(gridItem);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Failed to load gallery:', error);
+            }
+        }
+        
+        // Initialize gallery
+        document.addEventListener('DOMContentLoaded', loadGallery);
+    </script>
+</body>
+</html>

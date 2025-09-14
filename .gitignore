@@ -1,0 +1,4 @@
+.aider*
+node_modules
+spec.md
+update_gallery.ts
