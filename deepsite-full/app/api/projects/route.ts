@@ -6,12 +6,21 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
 
+const semverPattern = /^\d+\.\d+\.\d+$/;
+
 const requestSchema = z.object({
   title: z.string().min(1, "Title is required."),
   description: z.string().optional(),
   html: z.string().min(1, "Generated HTML is required."),
   prompts: z.array(z.string()).default([]),
   slug: z.string().optional(),
+  version: z
+    .string()
+    .trim()
+    .refine((value) => semverPattern.test(value), {
+      message: "Version must follow semver (e.g. 1.0.0).",
+    })
+    .optional(),
 });
 
 const slugOptions: slugify.Options = {
@@ -64,7 +73,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { title, description, html, prompts, slug } = parsed.data;
+  const { title, description, html, prompts, slug, version } = parsed.data;
   const ownerId = session.user.id;
   const baseSlug =
     slug?.trim() ||
@@ -112,7 +121,11 @@ export async function POST(request: Request) {
         projectId: project.id,
         html,
         prompts,
-        summary: prompts.length > 0 ? prompts.at(-1) : `Updated ${title}`,
+        summary: version
+          ? `Version ${version}`
+          : prompts.length > 0
+            ? prompts.at(-1)
+            : `Updated ${title}`,
       },
     });
 

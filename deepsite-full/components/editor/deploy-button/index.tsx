@@ -38,6 +38,7 @@ export function DeployButton({
         ? prompts[prompts.length - 1].slice(0, 60)
         : "New Appmo Project"),
     description: initialDescription ?? "",
+    version: "1.0.0",
   }));
 
   const saveProject = async () => {
@@ -45,6 +46,13 @@ export function DeployButton({
       toast.error("Please enter a project title.");
       return;
     }
+
+    const trimmedVersion = config.version.trim();
+    if (trimmedVersion && !/^\d+\.\d+\.\d+$/.test(trimmedVersion)) {
+      toast.error("Version must follow the pattern 0.0.0.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -53,9 +61,14 @@ export function DeployButton({
         description: config.description,
         html,
         prompts,
+        version: trimmedVersion || undefined,
       });
       if (res.data.ok) {
-        toast.success("Project saved to your workspace! 🎉");
+        toast.success(
+          trimmedVersion
+            ? `Version ${trimmedVersion} deployed to your workspace! 🚀`
+            : "Project saved to your workspace! 🎉"
+        );
         router.push(`/projects/${res.data.project.slug}`);
       } else {
         toast.error(res?.data?.error || "Failed to save project");
@@ -110,7 +123,7 @@ export function DeployButton({
                 </div>
               </div>
               <p className="text-xl font-semibold text-neutral-950">
-                Save to Workspace
+                Deploy to Workspace
               </p>
               <p className="text-sm text-neutral-500 mt-1.5">
                 Persist the latest version of your project so you can revisit,
@@ -119,12 +132,10 @@ export function DeployButton({
             </header>
             <main className="space-y-4 p-6">
               <div>
-                <p className="text-sm text-neutral-700 mb-2">
-                Project title
-                </p>
+                <p className="text-sm text-neutral-700 mb-2">Project title</p>
                 <Input
                   type="text"
-                placeholder="My Awesome Website"
+                  placeholder="My Awesome Website"
                   value={config.title}
                   onChange={(e) =>
                     setConfig({ ...config, title: e.target.value })
@@ -132,32 +143,44 @@ export function DeployButton({
                   className="!bg-white !border-neutral-300 !text-neutral-800 !placeholder:text-neutral-400 selection:!bg-blue-100"
                 />
               </div>
-            <div>
-              <p className="text-sm text-neutral-700 mb-2">
-                Optional description
-              </p>
-              <Input
-                type="text"
-                placeholder="What makes this site special?"
-                value={config.description}
-                onChange={(e) =>
-                  setConfig({ ...config, description: e.target.value })
-                }
-                className="!bg-white !border-neutral-300 !text-neutral-800 !placeholder:text-neutral-400 selection:!bg-blue-100"
-              />
-            </div>
               <div>
                 <p className="text-sm text-neutral-700 mb-2">
-                Click save to store it in your workspace.
+                  Optional description
+                </p>
+                <Input
+                  type="text"
+                  placeholder="What makes this site special?"
+                  value={config.description}
+                  onChange={(e) =>
+                    setConfig({ ...config, description: e.target.value })
+                  }
+                  className="!bg-white !border-neutral-300 !text-neutral-800 !placeholder:text-neutral-400 selection:!bg-blue-100"
+                />
+              </div>
+              <div>
+                <p className="text-sm text-neutral-700 mb-2">Version</p>
+                <Input
+                  type="text"
+                  placeholder="1.0.0"
+                  value={config.version}
+                  onChange={(e) =>
+                    setConfig({ ...config, version: e.target.value })
+                  }
+                  className="!bg-white !border-neutral-300 !text-neutral-800 !placeholder:text-neutral-400 selection:!bg-blue-100"
+                />
+              </div>
+              <div>
+                <p className="text-sm text-neutral-700 mb-2">
+                  Deploy to publish this version to your workspace.
                 </p>
                 <Button
                   variant="black"
-                onClick={saveProject}
+                  onClick={saveProject}
                   className="relative w-full"
                   disabled={loading}
                 >
-                Save Project <Rocket className="size-4" />
-                {loading && <Loading className="ml-2 size-4 animate-spin" />}
+                  Deploy <Rocket className="size-4" />
+                  {loading && <Loading className="ml-2 size-4 animate-spin" />}
                 </Button>
               </div>
             </main>
