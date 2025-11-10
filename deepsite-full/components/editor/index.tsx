@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { editor } from "monaco-editor";
 import Editor from "@monaco-editor/react";
@@ -24,7 +24,8 @@ import { useEditor } from "@/hooks/useEditor";
 import { AskAI } from "@/components/editor/ask-ai";
 import { Project } from "@/types";
 import { SaveButton } from "./save-button";
-import { LoadProject } from "../my-projects/load-project";
+import { PushToGitHubButton } from "@/components/editor/push-github-button";
+import { DeployButton } from "./deploy-button";
 import { isTheSameHtml } from "@/lib/compare-html-diff";
 
 export const AppEditor = ({ project }: { project?: Project | null }) => {
@@ -50,6 +51,12 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
   const [selectedElement, setSelectedElement] = useState<HTMLElement | null>(
     null
   );
+
+  useEffect(() => {
+    if (project?.prompts && project.prompts.length > 0) {
+      setPrompts(project.prompts);
+    }
+  }, [project?.id, project?.prompts, setPrompts]);
 
   /**
    * Resets the layout based on screen size
@@ -162,18 +169,21 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
   return (
     <section className="h-[100dvh] bg-neutral-950 flex flex-col">
       <Header tab={currentTab} onNewTab={setCurrentTab}>
-        <LoadProject
-          onSuccess={(project: Project) => {
-            if (project.space_id && project.space_id !== "local") {
-              router.push(`/projects/${project.space_id}`);
-            } else {
-              setHtml(project.html);
-              setPrompts(project.prompts || []);
-              toast.success("Projeto HTML carregado.");
-            }
-          }}
-        />
-        <SaveButton html={html} prompts={prompts} />
+        <div className="flex items-center gap-2">
+          <DeployButton
+            html={html}
+            prompts={prompts}
+            initialTitle={project?.title}
+            initialDescription={project?.description ?? null}
+          />
+          <SaveButton html={html} />
+          {project?.slug && (
+            <PushToGitHubButton
+              slug={project.slug}
+              branch={project?.defaultBranch ?? null}
+            />
+          )}
+        </div>
       </Header>
       <main className="bg-neutral-950 flex-1 max-lg:flex-col flex w-full max-lg:h-[calc(100%-82px)] relative">
         {currentTab === "chat" && (

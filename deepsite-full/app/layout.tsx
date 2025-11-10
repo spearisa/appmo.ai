@@ -3,6 +3,7 @@ import { Inter, PT_Sans } from "next/font/google";
 
 
 import TanstackProvider from "@/components/providers/tanstack-query-provider";
+import AuthProvider from "@/components/providers/auth-provider";
 import "@/assets/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import AppContext from "@/components/contexts/app-context";
@@ -79,9 +80,11 @@ export default async function RootLayout({
         className={`${inter.variable} ${ptSans.variable} antialiased bg-black dark h-[100dvh] overflow-hidden`}
       >
         <Toaster richColors position="bottom-center" />
-        <TanstackProvider>
-          <AppContext>{children}</AppContext>
-        </TanstackProvider>
+        <AuthProvider>
+          <TanstackProvider>
+            <AppContext>{children}</AppContext>
+          </TanstackProvider>
+        </AuthProvider>
       </body>
     </html>
   );

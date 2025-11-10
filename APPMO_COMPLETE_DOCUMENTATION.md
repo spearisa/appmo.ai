@@ -24,8 +24,10 @@
 - ✅ **AI-Powered Website Generation** - Create websites from text prompts
 - ✅ **Gallery System** - Browse 1,653+ example websites
 - ✅ **Multiple Interfaces** - Gallery, Functional, and Full App modes
-- ✅ **Mock AI System** - Works without API keys (free)
-- ✅ **Real AI Integration** - OpenAI GPT-4o Mini support
+- ✅ **Open-Source Default AI** - Qwen3 Coder 7B via Hugging Face Inference (no OpenAI billing)
+- ✅ **GitHub Workspace** - Sign in with GitHub and persist projects in Neon Postgres
+- ✅ **Optional Larger Models** - Qwen3 Coder 30B or custom endpoints
+- ✅ **Optional OpenAI Integration** - GPT-4o Mini and other paid providers
 - ✅ **Professional Output** - TailwindCSS, responsive design
 - ✅ **Local Development** - Everything runs on your machine
 
@@ -52,9 +54,9 @@
 │  └─ Screenshot display                                      │
 ├─────────────────────────────────────────────────────────────┤
 │  Port 3001: AI Proxy Server (Node.js)                      │
-│  ├─ Mock AI responses                                       │
-│  ├─ Custom HTML generation                                  │
-│  └─ API endpoint simulation                                 │
+│  ├─ Proxies requests to Next.js API                         │
+│  ├─ Streams Hugging Face Qwen responses                     │
+│  └─ Eliminates legacy mock generator                        │
 ├─────────────────────────────────────────────────────────────┤
 │  Port 3000: Full Appmo App (Next.js/React)                 │
 │  ├─ Complete AI website builder                             │
@@ -67,7 +69,7 @@
 ### Technology Stack
 - **Frontend**: React, Next.js, TailwindCSS, TypeScript
 - **Backend**: Node.js, Express, Python HTTP Server
-- **AI Integration**: OpenAI GPT-4o Mini (optional)
+- **AI Integration**: Qwen3 Coder 7B via Hugging Face (default), Qwen3 Coder 30B & OpenAI GPT-4o Mini (optional)
 - **Database**: Local storage (browser localStorage)
 - **Styling**: TailwindCSS, Font Awesome icons
 - **Development**: npm, nvm (Node Version Manager)
@@ -103,13 +105,25 @@ cd deepsite-full
 npm install
 ```
 
-#### 3. Generate Screenshots (if needed)
+#### 3. Configure Environment & Database
+```bash
+# Copy env template or edit .env.local
+cp deepsite-full/env.example deepsite-full/.env.local
+# Update DATABASE_URL, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, NEXTAUTH_SECRET, HF tokens, etc.
+
+# Generate Prisma client and sync schema to Neon
+cd deepsite-full
+npm run prisma:generate
+npm run db:push
+```
+
+#### 4. Generate Screenshots (if needed)
 ```bash
 # Generate placeholder screenshots
 python3 generate_placeholders.py
 ```
 
-#### 4. Start All Services
+#### 5. Start All Services
 ```bash
 # Terminal 1: Gallery Server
 python3 -m http.server 8000
@@ -150,11 +164,11 @@ npm run dev
 
 #### 2. Appmo Functional (Port 3001)
 **URL**: http://localhost:3001/deepsite-functional.html
-- **Purpose**: Custom AI website builder with mock responses
+- **Purpose**: Custom AI website builder that proxies the main API
 - **Features**:
   - AI prompt input
   - Real-time website generation
-  - Mock AI responses (free)
+  - Streams Hugging Face Qwen responses by default
   - Professional interface
   - Settings management
 
@@ -162,8 +176,8 @@ npm run dev
 **URL**: http://localhost:3000/projects/new
 - **Purpose**: Complete AI website generation platform
 - **Features**:
-  - Real OpenAI integration (with API key)
-  - Mock responses (without API key)
+  - Open-source default model (Qwen3 Coder 7B via Hugging Face)
+  - Optional larger Qwen3 Coder models & OpenAI-compatible providers (with API key)
   - Professional editor interface
   - Live preview
   - Code editor
@@ -172,11 +186,14 @@ npm run dev
 ### Creating Websites
 
 #### Basic Usage
+0. **Sign in with GitHub** (top-right user menu) to unlock saving features
 1. **Open** one of the applications
 2. **Enter a prompt** describing your desired website
 3. **Click generate** or press Enter
 4. **View** the generated website in real-time
 5. **Copy** the HTML code if needed
+6. **Save to Workspace** using the editor toolbar (stores HTML + prompts in Neon)
+7. **Push to GitHub** directly from the editor once a project is saved
 
 #### Example Prompts
 ```
@@ -189,7 +206,7 @@ npm run dev
 ```
 
 #### Advanced Features
-- **Model Selection**: Choose between GPT-4o Mini, GPT-4o, or custom models
+- **Model Selection**: Choose between Qwen3 Coder 7B (default), Qwen3 Coder 30B, GPT-4o Mini, or custom models
 - **Settings**: Configure API keys, base URLs, and preferences
 - **Live Preview**: See changes in real-time
 - **Code Export**: Download generated HTML files
@@ -214,12 +231,29 @@ Content-Type: application/json
 
 **Response**: Streaming HTML content
 
-#### Mock Response System
-When no API key is provided, the system uses intelligent mock responses:
-- Analyzes prompt keywords (landing, portfolio, e-commerce, blog)
-- Generates appropriate HTML templates
-- Uses TailwindCSS for styling
-- Creates responsive, professional designs
+#### Default Open-Source Response System
+When no OpenAI-style API key is provided, the platform calls Hugging Face Inference with Qwen3 Coder 7B:
+- Streams real model outputs over the existing SSE connection
+- Honors the same system prompts used for premium providers
+- Produces full HTML documents without relying on hard-coded templates
+- Requires a free Hugging Face token (`HF_API_TOKEN`) instead of paid OpenAI credits
+
+### Projects API (App Workspace)
+
+#### Save Project
+```http
+POST /api/projects
+Content-Type: application/json
+
+{
+  "title": "Portfolio Landing Page",
+  "description": "Hero, projects grid, contact form",
+  "html": "<!DOCTYPE html>...",
+  "prompts": ["Create a portfolio landing page with hero, project grid, and contact section"]
+}
+```
+
+Requires an authenticated GitHub session. Saves or updates the project for the current user, returns the slug and latest metadata, and appends a version record.
 
 ### Full App API (Port 3000)
 
@@ -259,6 +293,13 @@ Content-Type: application/json
 OPENAI_API_KEY=sk-your-key-here
 OPENAI_BASE_URL=https://api.openai.com/v1
 
+# Hugging Face Configuration (Required for default Qwen models)
+HF_API_TOKEN=hf_your-token-here
+# Optional overrides if you want to point to custom endpoints
+HF_QWEN3_CODER_7B_MODEL_ID=Qwen/Qwen3-Coder-7B-Instruct
+HF_QWEN3_CODER_30B_MODEL_ID=Qwen/Qwen3-Coder-30B-A3B-Instruct
+HF_QWEN_MODEL_ID=Qwen/Qwen2.5-14B-Instruct  # Legacy Qwen 2.5 support (optional)
+
 # Server Configuration
 PORT=3000  # Full app port
 AI_PROXY_PORT=3001  # AI proxy port
@@ -270,7 +311,7 @@ GALLERY_PORT=8000  # Gallery server port
 // API Configuration
 localStorage.setItem('openai_api_key', 'your-key');
 localStorage.setItem('openai_base_url', 'https://api.openai.com/v1');
-localStorage.setItem('openai_model', 'gpt-4o-mini');
+localStorage.setItem('openai_model', 'qwen3-coder-7b-instruct');
 
 // UI Preferences
 localStorage.setItem('theme', 'dark');
@@ -282,15 +323,24 @@ localStorage.setItem('language', 'en');
 // Available Models
 export const MODELS = [
   {
-    value: "gpt-4o-mini",
-    label: "GPT-4o Mini (Default)",
-    providers: ["openai-compatible"],
+    value: "qwen3-coder-7b-instruct",
+    label: "Qwen3 Coder 7B Instruct (Default)",
+    providers: ["hf-inference"],
+    autoProvider: "hf-inference",
     isThinker: false,
   },
   {
-    value: "gpt-4o",
-    label: "GPT-4o",
+    value: "qwen3-coder-30b-instruct",
+    label: "Qwen3 Coder 30B Instruct",
+    providers: ["hf-inference"],
+    autoProvider: "hf-inference",
+    isThinker: false,
+  },
+  {
+    value: "gpt-4o-mini",
+    label: "GPT-4o Mini",
     providers: ["openai-compatible"],
+    autoProvider: "openai-compatible",
     isThinker: false,
   }
 ];
@@ -342,7 +392,7 @@ python3 generate_placeholders.py
 - Verify API key format (starts with `sk-`)
 - Check OpenAI account balance
 - Ensure internet connection
-- Try mock mode (remove API key)
+- Remove the OpenAI key to fall back to the default Hugging Face workflow
 
 ### Debug Mode
 ```bash
@@ -359,38 +409,47 @@ curl http://localhost:8000
 
 ## 🔬 Technical Details
 
-### Mock AI System Architecture
+### Open-Source AI Architecture
 
-The mock system provides realistic AI responses without external API calls:
+The default flow now uses Hugging Face Inference with Qwen3 Coder 7B, with optional upgrades to Qwen3 Coder 30B through the same interface. Configure `HF_QWEN3_CODER_30B_MODEL_ID` if you run the 30B model on a dedicated Inference Endpoint or custom infrastructure.
 
-```javascript
-function generateRealisticHTML(prompt) {
-    // 1. Analyze prompt keywords
-    const isLanding = prompt.toLowerCase().includes('landing');
-    const isPortfolio = prompt.toLowerCase().includes('portfolio');
-    const isEcommerce = prompt.toLowerCase().includes('e-commerce');
-    
-    // 2. Generate appropriate HTML template
-    let html = `<!DOCTYPE html>...`;
-    
-    if (isLanding) {
-        html += generateLandingPageTemplate();
-    } else if (isPortfolio) {
-        html += generatePortfolioTemplate();
-    }
-    
-    // 3. Return complete HTML
-    return html + '</body></html>';
+```typescript
+async function generateWithHuggingFace(prompt: string) {
+  const response = await fetch(`https://api-inference.huggingface.co/models/${MODEL_ID}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.HF_API_TOKEN}`,
+    },
+    body: JSON.stringify({
+      inputs: prompt,
+      parameters: {
+        max_new_tokens: 2048,
+        temperature: 0.7,
+        top_p: 0.9,
+      },
+      options: {
+        wait_for_model: true,
+      },
+    }),
+  });
+
+  const data = await response.json();
+  return Array.isArray(data)
+    ? data[0]?.generated_text ?? ""
+    : data?.generated_text ?? "";
 }
 ```
 
 ### Streaming Response System
-```javascript
-// Simulate real AI streaming
-const words = generatedHTML.split('');
-for (let i = 0; i < words.length; i++) {
-    res.write(words[i]);
-    await new Promise(resolve => setTimeout(resolve, 10));
+```typescript
+const chunkSize = 600;
+for (let i = 0; i < html.length; i += chunkSize) {
+  const slice = html.slice(i, i + chunkSize);
+  await writer.write(encoder.encode(slice));
+  if (STREAM_DELAY_MS > 0) {
+    await wait(STREAM_DELAY_MS);
+  }
 }
 ```
 
@@ -412,12 +471,13 @@ The system includes pre-built templates for:
 
 ## 💰 Cost Analysis
 
-### Mock Mode (Current Default)
-- **Cost**: $0.00
-- **API Calls**: 0
-- **Data Usage**: Minimal (CSS CDN only)
-- **Quality**: High (professional templates)
-- **Variety**: Limited (template-based)
+### Open-Source Mode (Current Default)
+- **Cost**: $0.00 (requires free Hugging Face token)
+- **API Calls**: 1 per generation (Hugging Face Inference)
+- **Data Usage**: ~1-5MB per request
+- **Quality**: High (Qwen3 Coder 7B output)
+- **Variety**: Broad (model-driven)
+- **Notes**: Qwen3 Coder 30B is available but may require a paid Inference Endpoint or custom GPU hosting for consistent latency.
 
 ### Real AI Mode (With API Key)
 - **Cost**: $0.01-0.05 per website
@@ -434,10 +494,10 @@ Total:         ~$0.01-0.05 per website
 ```
 
 ### Usage Scenarios
-- **Testing/Demo**: Use mock mode (free)
-- **Production**: Use real AI mode (paid)
-- **Development**: Mix both modes
-- **Learning**: Start with mock, upgrade to AI
+- **Testing/Demo**: Use open-source default with Hugging Face token
+- **Production**: Opt into OpenAI-compatible providers as needed
+- **Development**: Mix models per environment
+- **Learning**: Start with the default Qwen setup, optionally upgrade to premium APIs
 
 ---
 
@@ -478,9 +538,9 @@ deepsite-gallery/
 ### Key Files Explained
 
 #### server.js
-- **Purpose**: AI proxy server with mock responses
+- **Purpose**: Lightweight proxy to the Next.js AI endpoints
 - **Port**: 3001
-- **Features**: Mock AI generation, API simulation
+- **Features**: Streams Hugging Face responses, aligns local functional UI with production
 
 #### deepsite-full/
 - **Purpose**: Complete Next.js application
@@ -602,8 +662,8 @@ pm2 start npm --name "appmo" -- start
 - **Disk Usage**: 985MB total
 
 ### Response Times
-- **Mock Generation**: ~2-5 seconds
-- **Real AI Generation**: ~10-30 seconds
+- **Hugging Face Qwen Generation**: ~5-12 seconds (model warm-up dependent)
+- **OpenAI-Compatible Generation**: ~10-30 seconds
 - **Gallery Loading**: ~1-3 seconds
 - **Page Navigation**: <1 second
 
@@ -675,6 +735,7 @@ export NODE_ENV="production"
 
 ### Useful Links
 - **OpenAI API**: https://platform.openai.com/docs
+- **Qwen3 Coder Collection**: https://huggingface.co/collections/Qwen/qwen3-coder
 - **Next.js Docs**: https://nextjs.org/docs
 - **TailwindCSS**: https://tailwindcss.com/docs
 - **React Docs**: https://react.dev
@@ -691,7 +752,7 @@ export NODE_ENV="production"
 
 ### Version 1.0.0 (Current)
 - ✅ Complete AI website generation system
-- ✅ Mock AI responses (free mode)
+- ✅ Open-source Qwen3 Coder responses (default mode)
 - ✅ Real OpenAI integration
 - ✅ Gallery with 1,653+ examples
 - ✅ Multiple interface options

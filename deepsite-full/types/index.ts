@@ -1,13 +1,3 @@
-export interface User {
-  fullname: string;
-  avatarUrl: string;
-  name: string;
-  isLocalUse?: boolean;
-  isPro: boolean;
-  id: string;
-  token?: string;
-}
-
 export interface HtmlHistory {
   html: string;
   createdAt: Date;
@@ -15,12 +5,24 @@ export interface HtmlHistory {
 }
 
 export interface Project {
+  id: string;
+  slug: string;
   title: string;
+  description?: string | null;
   html: string;
   prompts: string[];
-  user_id: string;
-  space_id: string;
-  _id?: string;
-  _updatedAt?: Date;
-  _createdAt?: Date;
+  lastCommitSha?: string | null;
+  lastSyncedAt?: string | null;
+  defaultBranch?: string | null;
+  repoHtmlUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  name?: string | null;
+  login?: string | null;
+  email?: string | null;
+  avatarUrl?: string | null;
 }

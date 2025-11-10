@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  githubId       BigInt?         @unique(map: "users_github_id_key") @map("github_id")
+  login          String          @unique
+  email          String?         @unique
+  emailVerified  DateTime?       @map("email_verified")
+  name           String?
+  image          String?         @map("avatar_url")
+  createdAt      DateTime        @default(dbgenerated("now()")) @map("created_at")
+  updatedAt      DateTime        @default(dbgenerated("now()")) @map("updated_at")
+
+  accounts       Account[]
+  sessions       Session[]
+  tokens         UserToken[]
+  repos          GitRepo[]
+  projects       Project[]       @relation("UserProjects")
+
+  @@map("users")
+}
+
+model Account {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  refresh_token_expires_in Int?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId], map: "accounts_provider_provider_account_id_key")
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionToken String   @unique @map("session_token")
+  userId       String   @db.Uuid
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token], map: "verification_token_identifier_token_key")
+  @@map("verification_tokens")
+}
+
+model UserToken {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @db.Uuid @map("user_id")
+  provider    String    @default("github")
+  accessToken String    @map("access_token")
+  refreshToken String?  @map("refresh_token")
+  scope       String?
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(dbgenerated("now()")) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_tokens")
+}
+
+model GitRepo {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @db.Uuid @map("user_id")
+  provider      String    @default("github")
+  owner         String
+  name          String
+  defaultBranch String    @default("main") @map("default_branch")
+  htmlUrl       String?   @map("html_url")
+  createdAt     DateTime  @default(dbgenerated("now()")) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects Project[]
+
+  @@unique([userId, provider, owner, name], map: "git_repos_unique_repo")
+  @@map("git_repos")
+}
+
+model Project {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId       String           @db.Uuid @map("owner_id")
+  repoId        String?          @db.Uuid @map("repo_id")
+  slug          String
+  title         String
+  description   String?
+  html          String           @db.Text
+  prompts       Json             @default("[]")
+  lastCommitSha String?          @map("last_commit_sha")
+  lastSyncedAt  DateTime?        @map("last_synced_at")
+  createdAt     DateTime         @default(dbgenerated("now()")) @map("created_at")
+  updatedAt     DateTime         @default(dbgenerated("now()")) @map("updated_at")
+
+  owner    User          @relation("UserProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  repo     GitRepo?      @relation(fields: [repoId], references: [id])
+  versions ProjectVersion[]
+
+  @@unique([ownerId, slug], map: "projects_owner_id_slug_key")
+  @@map("projects")
+}
+
+model ProjectVersion {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String   @db.Uuid @map("project_id")
+  html      String   @db.Text
+  prompts   Json     @default("[]")
+  summary   String?
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_versions")
+}
+

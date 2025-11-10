@@ -21,6 +21,8 @@ import { useUser } from "@/hooks/useUser";
 
 export const UserMenu = ({ className }: { className?: string }) => {
   const { logout, user } = useUser();
+  const displayName = user?.name ?? user?.login ?? "User";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -28,13 +30,13 @@ export const UserMenu = ({ className }: { className?: string }) => {
           <Avatar className="size-8 mr-1">
             <AvatarImage src={user?.avatarUrl} alt="@shadcn" />
             <AvatarFallback className="text-sm">
-              {user?.fullname?.charAt(0).toUpperCase() ?? "E"}
+              {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="max-lg:hidden">{user?.fullname}</span>
+          <span className="max-lg:hidden">{displayName}</span>
           <span className="lg:hidden">
-            {user?.fullname.slice(0, 10)}
-            {(user?.fullname?.length ?? 0) > 10 ? "..." : ""}
+            {displayName.slice(0, 10)}
+            {displayName.length > 10 ? "..." : ""}
           </span>
         </Button>
       </DropdownMenuTrigger>
@@ -66,9 +68,9 @@ export const UserMenu = ({ className }: { className?: string }) => {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => {
+          onClick={async () => {
             if (confirm("Are you sure you want to log out?")) {
-              logout();
+              await logout();
             }
           }}
         >

@@ -37,7 +37,9 @@ export function Settings({
   useEffect(() => {
     setApiKey(localStorage.getItem("openai_api_key") || "");
     setBaseUrl(localStorage.getItem("openai_base_url") || "");
-    setCustomModel(localStorage.getItem("openai_model") || "");
+    setCustomModel(
+      localStorage.getItem("openai_model") || "qwen3-coder-7b-instruct"
+    );
   }, [open]);
 
   const modelAvailableProviders = useMemo(() => {
@@ -111,13 +113,11 @@ export function Settings({
               />
             </label>
             <label className="block">
-              <p className="text-neutral-300 text-sm mb-2.5">
-                Custom Model
-              </p>
+              <p className="text-neutral-300 text-sm mb-2.5">Custom Model</p>
               <Input
                 type="text"
-                placeholder="e.g., gemma3:1b"
-                value={customModel || "gemma3:1b"}
+                placeholder="e.g., qwen3-coder-7b-instruct"
+                value={customModel || "qwen3-coder-7b-instruct"}
                 onChange={(e) => setCustomModel(e.target.value)}
                 className="!bg-neutral-800 !border-neutral-700 !text-neutral-200"
               />
@@ -131,9 +131,8 @@ export function Settings({
               Save Settings
             </Button>
             <div className="bg-amber-500/10 border-amber-500/10 p-3 text-xs text-amber-500 border rounded-lg">
-              Accepts any OpenAI-compatible provider. Enter the corresponding API key and base URL (e.g., OpenRouter, DeepSeek, etc.).
+              Default model runs through Hugging Face Inference (configure <code className="font-mono">HF_API_TOKEN</code>). Use values like <code className="font-mono">qwen3-coder-7b-instruct</code> or <code className="font-mono">qwen3-coder-30b-instruct</code>. For OpenAI-compatible APIs, enter the API key and base URL (e.g., OpenRouter, DeepSeek, custom vLLM).
             </div>
-
           </main>
         </PopoverContent>
       </Popover>

@@ -1,8 +1,11 @@
 "use client";
 
 import { createContext } from "react";
-import { User } from "@/types";
+import type { CurrentUser } from "@/types";
 
 export const UserContext = createContext({
-  user: undefined as User | undefined,
+  user: undefined as CurrentUser | undefined,
+  loading: false,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  logout: async () => {},
 });

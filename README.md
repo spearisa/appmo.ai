@@ -2,6 +2,8 @@
 
 A gallery showcasing websites created with [DeepSite](https://enzostvs-Appmo.hf.space/projects/new) - an AI-powered web development tool.
 
+> **Workspace update:** The Next.js app in `deepsite-full/` now supports GitHub sign-in and Neon Postgres persistence. Copy `deepsite-full/env.example` to `.env.local`, set your `DATABASE_URL`, GitHub OAuth keys, and Hugging Face token, then run `npm run prisma:generate` and `npm run db:push` before `npm run dev`.
+
 ## 🚀 Quick Start
 
 ### 1. Start the Gallery
@@ -39,6 +41,24 @@ python3 generate_placeholders.py
 # Open DeepSite and create sample prompts
 python3 Appmo_client.py
 ```
+
+## 💾 Saving Projects & Pushing to GitHub
+
+1. Copy the environment template and fill in secrets:
+   ```bash
+   cp deepsite-full/env.example deepsite-full/.env.local
+   ```
+   Provide `DATABASE_URL` (Neon), `NEXTAUTH_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and your Hugging Face token.
+
+2. Install dependencies and generate Prisma client:
+   ```bash
+   cd deepsite-full
+   npm install
+   npm run prisma:generate
+   npm run db:push
+   ```
+
+3. Run `npm run dev`, sign in with GitHub from the editor footer, and click **Save to Workspace** to persist the project. Use **Push to GitHub** to commit `index.html` to any repo your token grants access to.
 
 ## 📁 Project Structure
 

@@ -53,7 +53,7 @@ export function AskAI({
   const [prompt, setPrompt] = useState("");
   const [hasAsked, setHasAsked] = useState(false);
   const [previousPrompt, setPreviousPrompt] = useState("");
-  const [provider, setProvider] = useLocalStorage("provider", "auto");
+  const [provider, setProvider] = useLocalStorage("provider", "hf-inference");
   const [openProvider, setOpenProvider] = useState(false);
   const [providerError, setProviderError] = useState("");
   const [think, setThink] = useState<string | undefined>(undefined);
@@ -63,9 +63,9 @@ export function AskAI({
   const [isFollowUp, setIsFollowUp] = useState(true);
 
   const getModel = () =>
-  typeof window !== "undefined"
-    ? localStorage.getItem("openai_model") || "gpt-4o-mini"
-    : "gpt-4o-mini";
+    typeof window !== "undefined"
+      ? localStorage.getItem("openai_model") || "qwen3-coder-7b-instruct"
+      : "qwen3-coder-7b-instruct";
 
   const callAi = async (redesignMarkdown?: string) => {
     if (isAiWorking) return;

@@ -1,65 +1,54 @@
 import Link from "next/link";
 import { formatDistance } from "date-fns";
-import { EllipsisVertical } from "lucide-react";
+import { GithubIcon } from "lucide-react";
 
-import { Project } from "@/types";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import type { Project } from "@/types";
 
 export function ProjectCard({ project }: { project: Project }) {
-  return (
-    <div className="text-neutral-200 space-y-4 group cursor-pointer">
-      <Link
-        href={`/projects/${project.space_id}`}
-        className="relative bg-neutral-900 rounded-2xl overflow-hidden h-44 w-full flex items-center justify-end flex-col px-3 border border-neutral-800"
-      >
-        <iframe
-          src={`https://${project.space_id.replace("/", "-")}.static.hf.space/`}
-          frameBorder="0"
-          className="absolute inset-0 w-full h-full top-0 left-0 group-hover:brightness-75 transition-all duration-200 pointer-events-none"
-        ></iframe>
+  const updatedLabel = formatDistance(new Date(project.updatedAt), new Date(), {
+    addSuffix: true,
+  });
 
-        <Button
-          variant="default"
-          className="w-full transition-all duration-200 translate-y-full group-hover:-translate-y-3"
-        >
-          Open project
-        </Button>
-      </Link>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-neutral-200 text-base font-semibold line-clamp-1">
-            {project.space_id}
-          </p>
-          <p className="text-sm text-neutral-500">
-            Updated{" "}
-            {formatDistance(
-              new Date(project._updatedAt || Date.now()),
-              new Date(),
-              {
-                addSuffix: true,
-              }
-            )}
-          </p>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <EllipsisVertical className="text-neutral-400 size-5 hover:text-neutral-300 transition-colors duration-200 cursor-pointer" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuGroup>
-              
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+  return (
+    <Link
+      href={`/projects/${project.slug}`}
+      className="group flex flex-col justify-between bg-neutral-900 border border-neutral-800 rounded-3xl p-6 hover:border-sky-500/60 hover:shadow-[0_20px_60px_-40px_rgba(56,189,248,0.75)] transition-all duration-300"
+    >
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">
+          Last updated {updatedLabel}
+        </p>
+        <h3 className="text-xl font-semibold text-white line-clamp-1">
+          {project.title}
+        </h3>
+        <p className="text-sm text-neutral-400 line-clamp-2">
+          {project.description ??
+            (project.prompts.length > 0
+              ? project.prompts[project.prompts.length - 1]
+              : "Open to continue editing this project.")}
+        </p>
       </div>
-    </div>
+      <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-xs text-neutral-500 space-y-2 group-hover:border-sky-500/50">
+        <div className="line-clamp-3">
+          {project.html
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 160)}
+          {project.html.length > 160 ? "…" : ""}
+        </div>
+        {project.repoHtmlUrl && (
+          <a
+            href={project.repoHtmlUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sky-400 hover:text-sky-300 transition-colors"
+          >
+            <GithubIcon className="size-3.5" />
+            View on GitHub
+          </a>
+        )}
+      </div>
+    </Link>
   );
 }
