@@ -11,12 +11,14 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
-    "canvas": "^2.11.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "mime-types": "^3.0.1",
     "p-limit": "^6.2.0",
     "puppeteer": "^24.6.0"
+  },
+  "optionalDependencies": {
+    "canvas": "^2.11.2"
   },
   "keywords": [
     "appmo",
