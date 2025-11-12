@@ -33,7 +33,7 @@ export const UserMenu = ({ className }: { className?: string }) => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className={`${className}`}>
           <Avatar className="size-8 mr-1">
-            <AvatarImage src={user?.avatarUrl} alt="@shadcn" />
+            <AvatarImage src={user?.avatarUrl ?? undefined} alt="@shadcn" />
             <AvatarFallback className="text-sm">
               {fallbackInitial}
             </AvatarFallback>
