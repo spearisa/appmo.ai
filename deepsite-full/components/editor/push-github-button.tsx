@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/hooks/useUser";
 import { api } from "@/lib/api";
+import type { AxiosError } from "axios";
 
 export function PushToGitHubButton({
   slug,
@@ -50,11 +51,14 @@ export function PushToGitHubButton({
       } else {
         toast.error(res.data.error || "Failed to push to GitHub.");
       }
-    } catch (error: any) {
-      if (error?.response?.status === 401) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ error?: string }>;
+      if (axiosError?.response?.status === 401) {
         toast.error("Sign in with GitHub to push code.");
       } else {
-        toast.error(error?.response?.data?.error || error.message);
+        toast.error(
+          axiosError.response?.data?.error || axiosError.message || "Failed to push to GitHub."
+        );
       }
     } finally {
       setLoading(false);

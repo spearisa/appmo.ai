@@ -8,9 +8,9 @@ import { prisma } from "@/lib/prisma";
 export default async function ProjectPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = await params;
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {

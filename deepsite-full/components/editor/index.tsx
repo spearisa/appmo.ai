@@ -14,7 +14,6 @@ import {
   useUpdateEffect,
 } from "react-use";
 import classNames from "classnames";
-import { useRouter } from "next/navigation";
 
 import { Header } from "@/components/editor/header";
 import { Footer } from "@/components/editor/footer";
@@ -33,9 +32,6 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
   const [, copyToClipboard] = useCopyToClipboard();
   const { html, setHtml, htmlHistory, setHtmlHistory, prompts, setPrompts } =
     useEditor(project?.html ?? (htmlStorage as string) ?? defaultHTML);
-  // get query params from URL
-  const router = useRouter();
-
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const preview = useRef<HTMLDivElement>(null);
   const editor = useRef<HTMLDivElement>(null);
