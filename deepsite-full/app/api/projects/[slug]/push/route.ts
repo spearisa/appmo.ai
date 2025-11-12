@@ -168,11 +168,16 @@ export async function POST(
     },
   });
 
+  const normalizedPrompts: Prisma.InputJsonValue =
+    project.prompts === null || project.prompts === undefined
+      ? []
+      : (project.prompts as unknown as Prisma.InputJsonValue);
+
   await prisma.projectVersion.create({
     data: {
       projectId: project.id,
       html: project.html,
-      prompts: project.prompts as unknown as Prisma.JsonValue,
+      prompts: normalizedPrompts,
       summary: `Pushed to ${owner}/${repo}`,
     },
   });

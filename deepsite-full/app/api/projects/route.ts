@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       data: {
         projectId: project.id,
         html,
-        prompts: prompts as unknown as Prisma.JsonValue,
+        prompts: prompts as Prisma.InputJsonValue,
         summary: version
           ? `Version ${version}`
           : prompts.length > 0
