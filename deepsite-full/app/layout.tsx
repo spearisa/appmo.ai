@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, PT_Sans } from "next/font/google";
-
+import { getServerSession } from "next-auth";
 
 import TanstackProvider from "@/components/providers/tanstack-query-provider";
 import AuthProvider from "@/components/providers/auth-provider";
@@ -8,6 +8,7 @@ import "@/assets/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import AppContext from "@/components/contexts/app-context";
 import Script from "next/script";
+import { authOptions } from "@/lib/auth-options";
 
 const inter = Inter({
   variable: "--font-inter-sans",
@@ -69,6 +70,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <Script
@@ -80,7 +83,7 @@ export default async function RootLayout({
         className={`${inter.variable} ${ptSans.variable} antialiased bg-black dark h-[100dvh] overflow-hidden`}
       >
         <Toaster richColors position="bottom-center" />
-        <AuthProvider>
+        <AuthProvider session={session}>
           <TanstackProvider>
             <AppContext>{children}</AppContext>
           </TanstackProvider>

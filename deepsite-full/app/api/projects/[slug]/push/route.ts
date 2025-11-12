@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { Octokit } from "@octokit/rest";
+import { RequestError } from "@octokit/request-error";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
@@ -78,16 +80,41 @@ export async function POST(
     if (!Array.isArray(existing.data) && "sha" in existing.data) {
       existingSha = existing.data.sha;
     }
-  } catch (error: any) {
-    if (error.status !== 404) {
+  } catch (error: unknown) {
+    if (error instanceof RequestError && error.status === 404) {
+      // Missing file is fine; we'll create it below.
+    } else if (error instanceof RequestError) {
+      const responseData = error.response?.data;
+      const responseMessage =
+        typeof responseData === "object" &&
+        responseData !== null &&
+        "message" in responseData &&
+        typeof responseData.message === "string"
+          ? responseData.message
+          : undefined;
+
       return NextResponse.json(
         {
           ok: false,
-          error:
-            error?.response?.data?.message ||
-            "Failed to inspect repository contents.",
+          error: responseMessage ?? error.message ?? "Failed to inspect repository contents.",
         },
-        { status: error?.status ?? 500 }
+        { status: error.status ?? 500 }
+      );
+    } else if (error instanceof Error) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: error.message,
+        },
+        { status: 500 }
+      );
+    } else {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Failed to inspect repository contents.",
+        },
+        { status: 500 }
       );
     }
   }
@@ -145,7 +172,7 @@ export async function POST(
     data: {
       projectId: project.id,
       html: project.html,
-      prompts: project.prompts,
+      prompts: project.prompts as unknown as Prisma.JsonValue,
       summary: `Pushed to ${owner}/${repo}`,
     },
   });

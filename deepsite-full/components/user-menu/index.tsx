@@ -21,7 +21,12 @@ import { useUser } from "@/hooks/useUser";
 
 export const UserMenu = ({ className }: { className?: string }) => {
   const { logout, user } = useUser();
-  const displayName = user?.name ?? user?.login ?? "User";
+  const displayName = user?.login ?? user?.name ?? "User";
+  const fallbackInitial =
+    (displayName ?? "")
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "U";
 
   return (
     <DropdownMenu>
@@ -30,7 +35,7 @@ export const UserMenu = ({ className }: { className?: string }) => {
           <Avatar className="size-8 mr-1">
             <AvatarImage src={user?.avatarUrl} alt="@shadcn" />
             <AvatarFallback className="text-sm">
-              {displayName.charAt(0).toUpperCase()}
+              {fallbackInitial}
             </AvatarFallback>
           </Avatar>
           <span className="max-lg:hidden">{displayName}</span>

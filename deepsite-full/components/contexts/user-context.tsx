@@ -3,9 +3,14 @@
 import { createContext } from "react";
 import type { CurrentUser } from "@/types";
 
-export const UserContext = createContext({
-  user: undefined as CurrentUser | undefined,
+interface UserContextValue {
+  user: CurrentUser | null | undefined;
+  loading: boolean;
+  logout: () => Promise<void>;
+}
+
+export const UserContext = createContext<UserContextValue>({
+  user: undefined,
   loading: false,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   logout: async () => {},
 });

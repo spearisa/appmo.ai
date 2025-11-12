@@ -12,8 +12,8 @@ export default function AppContext({
   const { user, logout, loading } = useUser();
 
   return (
-    <UserContext value={{ user, loading, logout } as any}>
+    <UserContext.Provider value={{ user, loading, logout }}>
       {children}
-    </UserContext>
+    </UserContext.Provider>
   );
 }

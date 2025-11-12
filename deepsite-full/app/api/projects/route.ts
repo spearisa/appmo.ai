@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import slugify from "slugify";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
@@ -120,7 +121,7 @@ export async function POST(request: Request) {
       data: {
         projectId: project.id,
         html,
-        prompts,
+        prompts: prompts as unknown as Prisma.JsonValue,
         summary: version
           ? `Version ${version}`
           : prompts.length > 0
