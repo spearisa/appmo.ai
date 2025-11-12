@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import slugify from "slugify";
+import type { Options as SlugifyOptions } from "slugify";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 
@@ -24,7 +25,7 @@ const requestSchema = z.object({
     .optional(),
 });
 
-const slugOptions: slugify.Options = {
+const slugOptions: SlugifyOptions = {
   lower: true,
   strict: true,
   trim: true,
